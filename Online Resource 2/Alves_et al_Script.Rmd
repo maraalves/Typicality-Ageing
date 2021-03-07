@@ -1,0 +1,283 @@
+---
+title: "Alves et al. Script"
+author: "Mara"
+date: "4 de Dezembro de 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#INFO: Using concept typicality to explore semantic representation and control in healthy ageing, Cognitive Processing
+#Mara Alves1, Patrícia Figueiredo2, Magda Sofia Roberto1 & Ana Raposo1
+#1 Research Center for Psychological Science, Faculdade de Psicologia, Universidade de Lisboa, Portugal
+#2 ISR-Lisboa/LARSyS and Department of Bioengineering, Instituto Superior TÃ©cnico, Universidade de Lisboa, Portugal
+#Corresponding author: Mara Alves,Faculdade de Psicologia, Universidade de Lisboa, Alameda da Universidade, 1649-013 Lisboa,Portugal. Phone: +351 21 7943867. E-mail: mlalves@psicologia.ulisboa.pt
+```
+
+
+```{r}
+library(readr)
+library(lme4)
+library(lmerTest)
+library(tidyverse)
+
+options(scipen = 999) #Remove scientific notation
+```
+
+```{r}
+#Upload DataBases
+BD_ACC <- read.csv("BD_ACC.csv") 
+BD_RT <- read.csv("BD_RT.csv")
+BD_ACC_False <- read.csv("BD_ACC_False.csv")
+BD_RT_False <- read.csv("BD_RT_False.csv") 
+BD_ACC_True <- read.csv("BD_ACC_True.csv")
+BD_RT_True <- read.csv("BD_RT_True.csv")
+```
+
+
+```{r}
+#Check age and typicality effects in True and False trials
+#ACC
+#Covariates
+All_ACC <- glmer(ACC ~ all_groups*Typi_cen*TF + (1|escolaridade)+ (1|Fam_tipi_cen) + (1|CD_Log_cen) +  (1|Imag_cen) + (1|AoA_cen) +
+               (1|Subject) +
+               (1|Item), data=BD_ACC,  family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(All_ACC)
+#Our Model (W/O Covariates)
+All_ACC_i <- glmer(ACC ~ all_groups*Typi_cen*TF +
+               (1+Typi_cen||Subject) + 
+               (1|Item), data=BD_ACC, family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(All_ACC_i)
+#Simpler model I
+All_ACC_ii <- glmer(ACC ~ all_groups*Typi_cen*TF + 
+               (1|Subject) +
+               (1|Item), data=BD_ACC, family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(All_ACC_ii)
+#Simpler model II
+All_ACC_iii <- glmer(ACC ~ all_groups*Typi_cen*TF + 
+               (1|Subject), data=BD_ACC, family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(All_ACC_iii)
+#Compare Models
+anova(All_ACC_i, All_ACC)
+anova(All_ACC_i, All_ACC_ii)
+anova(All_ACC_i, All_ACC_iii)
+```
+
+```{r}
+#TrueFalse
+#RT
+#Covariates
+All_RT <- glmer(RT ~ all_groups*Typi_cen*TF + (1|escolaridade)+ (1|Fam_tipi_cen) + (1|CD_Log_cen) +  (1|Imag_cen) + (1|AoA_cen) +
+               (1 + Typi_cen||Subject) + 
+               (1|Item), data=BD_RT,   family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(All_RT)
+#Our Model (W/O Covariates)
+All_RT_i <- glmer(RT ~ all_groups*Typi_cen*TF +
+               (1+Typi_cen||Subject) + 
+               (1|Item), data=BD_RT,   family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(All_RT_i)
+#Simpler Model I
+All_RT_ii <- glmer(RT ~ all_groups*Typi_cen*TF +
+               (1|Subject) + 
+               (1|Item), data=BD_RT, family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(All_RT_ii)
+#Simpler Model II
+All_RT_iii <- glmer(RT ~ all_groups*Typi_cen*TF +
+               (1|Subject), data=BD_RT, family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(All_RT_iii)
+#Compare Models
+anova(All_RT_i, All_RT)
+anova(All_RT_i, All_RT_ii)
+anova(All_RT_i, All_RT_iii)
+```
+
+```{r}
+#Check age and typicality effects in False trials
+#False
+#ACC
+#Covariates
+False_ACC <- glmer(ACC ~ all_groups*Typi_cen + (1|escolaridade)+ (1|Fam_tipi_cen) + (1|CD_Log_cen) +  (1|Imag_cen) + (1|AoA_cen) +
+               (1 + Typi_cen||Subject) + 
+               (1|Item), data=BD_ACC_False,  family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(False_ACC)
+#Our Model (W/O Covariates)
+False_ACC_i <- glmer(ACC ~ Typi_cen*all_groups +
+               (1+Typi_cen||Subject) + 
+               (1|Item), data=BD_ACC_False,family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(False_ACC_i)
+#Simpler Model I
+False_ACC_ii <- glmer(ACC ~ Typi_cen * all_groups +
+               (1|Subject) + 
+               (1|Item), data=BD_ACC_False,family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(False_ACC_ii)
+#Simpler Model II
+False_ACC_iii <- glmer(ACC ~ Typi_cen * all_groups +
+               (1|Subject), data=BD_ACC_False,family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(False_ACC_iii)
+#Compare Models
+anova(False_ACC_i, False_ACC)
+anova(False_ACC_i, False_ACC_ii)
+anova(False_ACC_i, False_ACC_iii)
+```
+
+```{r}
+#False
+#RT
+#Covariates
+False_RT <- glmer(RT ~ all_groups*Typi_cen + (1|escolaridade)+ (1|Fam_tipi_cen) + (1|CD_Log_cen) +  (1|Imag_cen) + (1|AoA_cen) +
+               (1 + Typi_cen||Subject) + 
+               (1|Item), data=BD_RT_False, family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(False_RT)
+#Our Model (W/O Covariates)
+False_RT_i <- glmer(RT ~ Typi_cen*all_groups + 
+               (1+Typi_cen||Subject) + 
+               (1|Item), data=BD_RT_False, family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(False_RT_i)
+#Simpler Model I
+False_RT_ii <- glmer(RT ~ all_groups*Typi_cen +
+               (1|Subject) + 
+               (1|Item), data=BD_RT_False, family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(False_RT_ii)
+#Simpler Model II
+False_RT_iii <- glmer(RT ~ all_groups*Typi_cen +
+               (1|Subject), data=BD_RT_False, family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(False_RT_iii)
+#Compare Models
+anova(False_RT_i, False_RT)
+anova(False_RT_i, False_RT_ii)
+anova(False_RT_i, False_RT_iii)
+```
+
+```{r}
+#Check age and typicality effects in True trials
+#True
+#ACC
+#Covariates
+True_ACC <- glmer(ACC ~ all_groups*Typi_cen + (1|escolaridade)+ (1|Fam_tipi_cen) + (1|CD_Log_cen) +  (1|Imag_cen) + (1|AoA_cen) +
+               (1 + Typi_cen||Subject) + 
+               (1|Item), data=BD_ACC_True, family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(True_ACC)
+#Our Model (W/O Covariates)
+True_ACC_i <- glmer(ACC ~ all_groups*Typi_cen +
+               (1+Typi_cen||Subject) + 
+               (1|Item), data=BD_ACC_True,  family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(True_ACC_i)
+#Simpler Model I
+True_ACC_ii <- glmer(ACC ~ Typi_cen * all_groups +
+               (1|Subject) + 
+               (1|Item), data=BD_ACC_True, family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(True_ACC_ii)
+#Simpler Model II
+True_ACC_iii <- glmer(ACC ~ Typi_cen * all_groups +
+               (1|Subject), data=BD_ACC_True, family = binomial(link = "logit"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(True_ACC_iii)
+#Compare models
+anova(True_ACC_i, True_ACC)
+anova(True_ACC_i, True_ACC_ii)
+anova(True_ACC_i, True_ACC_iii)
+```
+
+```{r}
+#True
+#RT
+#Covariates
+True_RT <- glmer(RT ~ all_groups*Typi_cen + (1|escolaridade)+ (1|Fam_tipi_cen) + (1|CD_Log_cen) +  (1|Imag_cen) + (1|AoA_cen) +
+               (1 + Typi_cen||Subject) + 
+               (1|Item), data=BD_RT_True,  family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(True_RT)
+#Our Model (W/O Covariates)
+True_RT_i <- glmer(RT ~ Typi_cen*all_groups +
+               (1 + Typi_cen||Subject) + 
+               (1|Item), data=BD_RT_True,  family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(True_RT_i)
+#Simpler Model I
+True_RT_ii <- glmer(RT ~ all_groups*Typi_cen +
+               (1|Subject) + 
+               (1|Item), data=BD_RT_True,  family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(True_RT_ii)
+#Simpler Model II
+True_RT_iii <- glmer(RT ~ all_groups*Typi_cen +
+               (1|Subject), data=BD_RT_True,  family = inverse.gaussian(link = "identity"),nAGQ=1, control=glmerControl(optCtrl=list(maxfun=35000), optimizer = "nloptwrap", calc.derivs = FALSE))
+summary(True_RT_iii)
+#Compare Models
+anova(True_RT_i, True_RT)
+anova(True_RT_i, True_RT_ii)
+anova(True_RT_i, True_RT_iii)
+```
+
+```{r}
+#Ploting
+#True
+#ACC
+#Preparing
+True_ACC_plot <- BD_ACC_True %>%
+  group_by(Typicality, old_group, all_groups, group,cond_TrueFalse) %>%
+  summarise(ACC = mean(ACC))%>%
+  arrange(ACC)
+#Plotting
+ggplot(True_ACC_plot, aes(group = all_groups,Typicality, ACC)) +
+ geom_boxplot(size=0.2,width =0.5,outlier.shape = NA, outlier.size = 1, outlier.colour = "gray")+
+  geom_point(size = 0.8,shape = 16,aes(color = all_groups))+
+  geom_smooth(method = "glm",se = FALSE, colour = "black", method.args=list(family = "binomial"), size =0.3)+
+  scale_color_gradient(low = "gray", high = "gray")+
+  labs(x = "Typicality", y = "ACC")+
+  coord_cartesian(ylim = c(0.4,1))+
+  theme(legend.position = "none", axis.text.x = element_text(size=10), axis.text.y = element_text(size=10), axis.title.x = element_text(size=10, face = "bold"), axis.title.y = element_text(size=10, face = "bold"),axis.line = element_line(colour = "black"), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  facet_grid(~group)
+#RT
+#Preparing
+True_RT_plot <- BD_RT_True %>%
+  group_by(Typicality, all_groups, old_group, group, cond_TrueFalse) %>%
+  summarise(RT = mean(RT))%>%
+  arrange(RT)
+#Plotting
+ggplot(True_RT_plot, aes(group = all_groups,Typicality, RT)) +
+  geom_boxplot(size=0.2,width =0.5,outlier.shape = NA, outlier.size = 1, outlier.colour = "gray")+
+  geom_point(size = 0.8,shape = 16,aes(color = all_groups))+
+  geom_smooth(method = "lm",se = FALSE, colour = "black", size =0.3)+
+  scale_color_gradient(low = "gray", high = "gray")+
+  labs(x = "Typicality", y = "RT (ms)")+
+  coord_cartesian(ylim = c(1000,3000))+
+  theme(legend.position = "none",axis.text.x = element_text(size=10), axis.text.y = element_text(size=10), axis.title.x = element_text(size=10, face = "bold"), axis.title.y = element_text(size=10, face = "bold"),axis.line = element_line(colour = "black"), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  facet_grid(~group)
+
+#False
+#ACC
+#Preparing
+False_ACC_plot <- BD_ACC_False %>%
+  group_by(Typicality, all_groups, old_group,group, Item) %>%
+  summarise(ACC = mean(ACC))%>%
+  arrange(ACC)
+#Plotting
+ggplot(False_ACC_plot, aes(group = all_groups,Typicality, ACC)) +
+ geom_boxplot(size=0.2,width =0.5,outlier.shape = NA, outlier.size = 1, outlier.colour = "gray")+
+  geom_point(size = 0.8,shape = 16,aes(color = all_groups))+
+  geom_smooth(method = "glm",se = FALSE, colour = "black", method.args=list(family = "binomial"), size =0.3)+
+  scale_color_gradient(low = "gray", high = "gray")+
+  labs(x = "Typicality", y = "ACC")+
+  coord_cartesian(ylim = c(0.4,1))+
+  theme(legend.position = "none",axis.text.x = element_text(size=10), axis.text.y = element_text(size=10), axis.title.x = element_text(size=10, face = "bold"), axis.title.y = element_text(size=10, face = "bold"),axis.line = element_line(colour = "black"), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  facet_grid(~group)
+#RT
+#Preparing
+False_RT_plot <- BD_RT_False %>%
+  group_by(Typicality, all_groups, old_group,group, Item) %>%
+  summarise(RT = mean(RT))%>%
+  arrange(RT)
+#Plotting
+ggplot(False_RT_plot, aes(group = all_groups,Typicality, RT)) +
+  geom_boxplot(size=0.2,width =0.5,outlier.shape = NA, outlier.size = 1, outlier.colour = "gray")+
+  geom_point(size = 0.8,shape = 16,aes(color = all_groups))+
+  geom_smooth(method = "lm",se = FALSE, colour = "black", size =0.3)+
+  scale_color_gradient(low = "gray", high = "gray")+
+  labs(x = "Typicality", y = "RT (ms)")+
+   coord_cartesian(ylim = c(1000,3000))+
+  theme(legend.position = "none",axis.text.x = element_text(size=10), axis.text.y = element_text(size=10), axis.title.x = element_text(size=10, face = "bold"), axis.title.y = element_text(size=10, face = "bold"),axis.line = element_line(colour = "black"), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  facet_grid(~group)
+```
+
